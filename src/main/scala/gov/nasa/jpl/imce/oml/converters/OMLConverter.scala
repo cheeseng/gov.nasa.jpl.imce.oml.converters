@@ -58,7 +58,7 @@ object OMLConverter {
   val optionsParser = new scopt.OptionParser[Options]("omlConverter") {
 
     cmd("text")
-      .text("Relative to an `oml.catalog.xml`, converts all OML textual syntax files, '*.oml' and/or '*.omlzip'")
+      .text("Relative to an `oml.catalog.xml`, converts all OML textual syntax files, '*.oml' and/or '*.omlzip'.")
       .optional()
       .action { (_, c) =>
         c.copy(input = ConversionCommand.CatalogInputConversion(from = ConversionCommand.ConversionFromText))
@@ -67,7 +67,8 @@ object OMLConverter {
     note("")
 
     cmd("owl")
-      .text("Relative to an `oml.catalog.xml`, converts all OML files in OWL2-DL + SWRL rules, '*.owl'")
+      .text(
+        s"""Relative to an `oml.catalog.xml`, converts all OML files in OWL2-DL + SWRL rules, '*.owl'.""".stripMargin)
       .optional()
       .action { (_, c) =>
         c.copy(input = ConversionCommand.CatalogInputConversion(from = ConversionCommand.ConversionFromOWL))
@@ -76,7 +77,7 @@ object OMLConverter {
     note("")
 
     cmd("json")
-      .text("Relative to an `oml.catalog.xml`, converts all OML tabular json archive files, '*.omlzip'")
+      .text("Relative to an `oml.catalog.xml`, converts all OML tabular json archive files, '*.omlzip'.")
       .optional()
       .action { (_, c) =>
         c.copy(input = ConversionCommand.CatalogInputConversion(from = ConversionCommand.ConversionFromOWLZip))
@@ -111,7 +112,7 @@ object OMLConverter {
     note("")
 
     cmd("diff")
-      .text("Convert from OML files in OWL2-DL + SWRL rules, '*.owl'")
+      .text("Convert from OML files in OWL2-DL + SWRL rules, '*.owl'.")
       .optional()
       .action { (_, c) =>
         c.copy(input = ConversionCommand.CompareDirectories())
@@ -159,6 +160,11 @@ object OMLConverter {
 
       )
 
+    note("")
+    note("A Path to a directory or to an 'oml.catalog.xml' file can be specified in several ways as follows:")
+    note("- an absolute path; e.g., '/...'")
+    note("- a path relative to the current directory; e.g., './...'")
+    note("- a path relative to the home directory; e.g., '~/...'")
     note("")
     note("Options:")
     note("")
@@ -231,7 +237,7 @@ object OMLConverter {
     opt[Unit]("text")
       .text(
         s"""Output conversion includes OML as textual syntax '*.oml' files
-           |$helpIndent(Not applicable for 'merge' command).
+           |$helpIndent(Not applicable for 'diff' or 'merge' commands).
            |""".stripMargin)
       .abbr("t")
       .optional()
@@ -242,7 +248,12 @@ object OMLConverter {
     opt[Unit]("owl")
       .text(
         s"""Output conversion includes OWL2-DL + SWRL rule '*.owl' ontology files, one for each OML module.
-           |$helpIndent(Not applicable for 'merge' command).
+           |$helpIndent(Not applicable for 'diff' or 'merge' commands).
+           |${helpIndent}Note that the output will NOT include owl files for any ontology whose IRI begins any of:
+           |$helpIndent - http://www.w3.org/
+           |$helpIndent - http://purl.org/
+           |${helpIndent}These exclusions are necessary to avoid problems with the OWL2 API's built-in vocabulary.
+           |${helpIndent}OML supports an explicit representation of this built-in vocabulary in other formats (text, json, parquet, sql).
            |""".stripMargin)
       .abbr("o")
       .optional()
@@ -253,7 +264,7 @@ object OMLConverter {
     opt[Unit]("json")
       .text(
         s"""Output conversion includes archive files, '*.omlzip' of OML json tables, one for each OML module.
-           |$helpIndent(Not applicable for 'merge' command).
+           |$helpIndent(Not applicable for 'diff' or 'merge' commands).
            |""".stripMargin)
       .abbr("j")
       .optional()
@@ -264,6 +275,7 @@ object OMLConverter {
     opt[Unit]("parquet:each")
       .text(
         s"""Output conversion includes 'oml.parquet' output folders, one for each OML module.
+           |$helpIndent(Not applicable for 'diff' or 'merge' commands).
            |$helpIndent(Caution: this is slow!)
            |${helpIndent}Note: Ignore warnings from Apache Spark like this for some <N> and <S>:
            |${helpIndent}WARN TaskSetManager: Stage <N> contains a task of very large size (<S> KB). The maximum recommended task size is 100 KB.
@@ -277,6 +289,7 @@ object OMLConverter {
     opt[Unit]("parquet")
       .text(
         s"""Output conversion aggregates all OML modules into a single 'oml.parquet' output folder.
+           |$helpIndent(Not applicable for 'diff' or 'merge' commands).
            |${helpIndent}Note: Ignore warnings from Apache Spark like this for some <N> and <S>:
            |${helpIndent}WARN TaskSetManager: Stage <N> contains a task of very large size (<S> KB). The maximum recommended task size is 100 KB.
            |""".stripMargin)
@@ -288,8 +301,9 @@ object OMLConverter {
 
     opt[String]("sql")
       .text(
-        """Output conversion aggregates all OML modules into OML data stored on an SQL server.
-          |""".stripMargin)
+        s"""Output conversion aggregates all OML modules into OML data stored on an SQL server.
+           |$helpIndent(Not applicable for 'diff' or 'merge' commands).
+           |""".stripMargin)
       .abbr("s")
       .optional()
       .action { (server, c) =>
